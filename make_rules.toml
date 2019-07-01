@@ -1,0 +1,69 @@
+[[modules]]
+name = "filter"
+files = [
+    "src/filter/src/bessel.c",
+	"src/filter/src/butter.c",
+	"src/filter/src/cheby1.c",
+	"src/filter/src/cheby2.c",
+	"src/filter/src/ellip.c",
+	"src/filter/src/filter_rrrf.c",
+	"src/filter/src/filter_crcf.c",
+	"src/filter/src/filter_cccf.c",
+	"src/filter/src/firdes.c",
+	"src/filter/src/firdespm.c",
+	"src/filter/src/fnyquist.c",
+	"src/filter/src/gmsk.c",
+	"src/filter/src/group_delay.c",
+	"src/filter/src/hM3.c",
+	"src/filter/src/iirdes.pll.c",
+	"src/filter/src/iirdes.c",
+	"src/filter/src/lpc.c",
+	"src/filter/src/rcos.c",
+	"src/filter/src/rkaiser.c", 
+	"src/filter/src/rrcos.c"
+]
+include_dirs = ["src/filter/src"]
+
+[[modules]]
+name = "buffer"
+files = [
+    "src/buffer/src/bufferf.c",
+    "src/buffer/src/buffercf.c",
+]
+include_dirs = ["src/buffer/src"]
+
+[[modules]]
+name = "utility"
+files = [
+    "src/utility/src/bshift_array.c",
+	"src/utility/src/byte_utilities.c",
+	"src/utility/src/msb_index.c",
+	"src/utility/src/pack_bytes.c",
+	"src/utility/src/shift_array.c"
+]
+
+[[modules]]
+name = "math"
+files = [
+    "src/math/src/poly.c",
+	"src/math/src/polyc.c",
+	"src/math/src/polyf.c",
+	"src/math/src/polycf.c",
+	"src/math/src/math.c",
+	"src/math/src/math.bessel.c",
+	"src/math/src/math.gamma.c",
+	"src/math/src/math.complex.c"	,
+	"src/math/src/math.trig.c",
+	"src/math/src/modular_arithmetic.c"	,
+	"src/math/src/windows.c"
+]
+include_dirs = ["src/math/src"]
+
+[dotprod_portable]
+name = "dotprod"
+files = [
+    "src/dotprod/src/dotprod_cccf.c",
+    "src/dotprod/src/dotprod_crcf.c",
+    "src/dotprod/src/dotprod_rrrf.c",
+    "src/dotprod/src/sumsq.c"
+]
