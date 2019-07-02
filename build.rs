@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::io::Write as _;
@@ -15,7 +16,7 @@ const FFT_OVERRIDE: bool = cfg!(feature = "fft-override");
 #[derive(Debug, Deserialize)]
 struct MakeRules {
     modules: Vec<Module>,
-    dotprod_portable: Module,
+    dotprod: HashMap<String, Module>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -55,11 +56,34 @@ fn create_config_h(config_dir: &PathBuf) -> ResultBox<()> {
         mem::size_of::<c_uint>()
     )?;
     if SIMD_OVERRIDE {
-        writeln!(f, "#define LIQUID_SIMDOVERRIDE")?;
+        writeln!(f, "#define LIQUID_SIMDOVERRIDE 1")?;
     }
     if FFT_OVERRIDE {
-        writeln!(f, "#define LIQUID_FFTOVERRIDE")?;
+        writeln!(f, "#define LIQUID_FFTOVERRIDE 1")?;
     }
+    // Write the SSE defines.
+    let mut define_if = |feature, cond| {
+        if cond {
+            writeln!(f, "#define {} 1", feature).unwrap();
+        }
+    };
+    let mut define_sse = |feature, header, cond| {
+        define_if(feature, cond);
+        define_if(header, cond);
+    };
+    define_sse("HAVE_MMX", "HAVE_MMINTRIN_H", cfg!(target_feature = "fxsr"));
+    define_sse("HAVE_SSE", "HAVE_XMMINTRIN_H", cfg!(target_feature = "sse"));
+    define_sse(
+        "HAVE_SSE2",
+        "HAVE_EMMINTRIN_H",
+        cfg!(target_feature = "sse2"),
+    );
+    define_sse(
+        "HAVE_SSE3",
+        "HAVE_PMMINTRIN_H",
+        cfg!(target_feature = "sse3"),
+    );
+
     writeln!(f, "#endif")?;
     Ok(())
 }
@@ -76,13 +100,18 @@ fn main() -> ResultBox<()> {
     for module in rules.modules {
         module.compile(&config_dir)?;
     }
-    // TODO: Support SIMD dotprod.
-    rules.dotprod_portable.compile(&config_dir)?;
+    // Compile either the portable or SSE dotprod depending on platform and override.
+    if !SIMD_OVERRIDE && cfg!(target_feature = "sse") {
+        &rules.dotprod["sse"]
+    } else {
+        &rules.dotprod["portable"]
+    }
+    .compile(&config_dir)?;
     // Create the bindgens.
     let bindings = bindgen::Builder::default()
         .header("./liquid-dsp/include/liquid.h")
-        .whitelist_function("msresamp_.*")
-        //.opaque_type("msresamp_rrrf.*")
+        .whitelist_function("msresamp_rrrf.*")
+        .generate_comments(true)
         .generate()
         .expect("Unable to generate bindings.");
     bindings.write_to_file(out_dir.join("bindings.rs"))?;
