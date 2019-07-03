@@ -1,4 +1,4 @@
-//! # Fiters
+//! # Various FIR- and IIR-based filters.
 //!
 //! A wrapper on top of the filter module. Currently, only msresamp is implemented.
 
@@ -10,7 +10,7 @@ use std::os::raw::c_void;
 use super::bindings::*;
 use super::Error;
 
-/// A wrapper on top of msresamp_tttf, a multi-stage arbitrary resampled. See the
+/// A wrapper on top of msresamp_tttf, a multi-stage arbitrary resampler. See the
 /// [`official documentation`] for more details.
 ///
 /// The types `T` and `InternalT` control the input/output and internal data types, respectively. For

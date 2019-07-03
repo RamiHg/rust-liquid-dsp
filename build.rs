@@ -88,6 +88,18 @@ fn create_config_h(config_dir: &PathBuf) -> ResultBox<()> {
     Ok(())
 }
 
+fn get_modules_to_compile() -> HashMap<String, bool> {
+    let mut modules = HashMap::new();
+    // Insert required dependencies.
+    modules.insert("buffer".to_string(), true);
+    modules.insert("dotprod".to_string(), true);
+    modules.insert("math".to_string(), true);
+    modules.insert("utility".to_string(), true);
+    // And now optional modules.
+    modules.insert("filter".to_string(), cfg!(feature = "filter"));
+    modules
+}
+
 fn main() -> ResultBox<()> {
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
     let config_dir = out_dir.join("include");
@@ -97,8 +109,11 @@ fn main() -> ResultBox<()> {
     create_config_h(&config_dir)?;
     // Read the make rules.
     let rules: MakeRules = toml::from_str(&fs::read_to_string("make_rules.toml")?)?;
+    let modules_to_compile = get_modules_to_compile();
     for module in rules.modules {
-        module.compile(&config_dir)?;
+        if modules_to_compile.contains_key(&module.name) {
+            module.compile(&config_dir)?;
+        }
     }
     // Compile either the portable or SSE dotprod depending on platform and override.
     if !SIMD_OVERRIDE && cfg!(target_feature = "sse") {

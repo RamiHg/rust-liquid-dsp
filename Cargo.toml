@@ -5,13 +5,15 @@ authors = ["Ramy"]
 edition = "2018"
 
 [features]
-default = ["fft-override"]
-# Enables verbose debug messages.
+default = ["fft-override", "filter"]
+# Enables verbose debug messages. (Unimplemented)
 debug-messages = []
 # Use portable C code for dotprod even if SIMD extensions are available.
 simd-override = []
 # Use internal FFT even if libfftw is available.
 fft-override = []
+# Compiles the filter module.
+filter = []
 
 [dependencies]
 more-asserts = "0.2.1"
