@@ -39,7 +39,7 @@ impl Module {
         }
         cc.warnings(false);
         // For some reason this still shows up even with warnings off?
-        cc.flag("-Wno-format-extra-args");
+        cc.flag_if_supported("-Wno-format-extra-args");
         cc.compile(&self.name);
         Ok(())
     }
