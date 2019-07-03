@@ -19,6 +19,8 @@ use super::Error;
 /// [`official documentation`]: https://liquidsdr.org/doc/msresamp/
 pub struct MultiStageResampler<T: 'static, InternalT = T> {
     obj: *mut c_void,
+    rate: f32,
+    supression: f32,
     data_type: PhantomData<T>,
     inner_type: PhantomData<InternalT>,
 }
@@ -27,6 +29,8 @@ impl MultiStageResampler<f32> {
     pub fn new(rate: f32, supression: f32) -> MultiStageResampler<f32> {
         let resampler = MultiStageResampler::<f32> {
             obj: unsafe { msresamp_rrrf_create(rate, supression) as *mut _ },
+            rate,
+            supression,
             data_type: PhantomData,
             inner_type: PhantomData,
         };
@@ -52,7 +56,7 @@ impl MultiStageResampler<f32> {
     }
 
     pub fn rate(&self) -> f32 {
-        unsafe { msresamp_rrrf_get_rate(self.obj as *mut _) }
+        self.rate
     }
 
     /// Returns the approximate required capacity in a destination buffer passed to filter. The
@@ -62,7 +66,7 @@ impl MultiStageResampler<f32> {
     /// this, this function will panic if the length provided overflows a `u32`.
     pub fn needed_capacity(&self, input_length: usize) -> usize {
         debug_assert_le!(input_length, std::u32::MAX as usize);
-        let needed_capacity = (input_length as f32 * self.rate()).ceil() + 1.0;
+        let needed_capacity = (input_length as f32 * self.rate).ceil() + 1.0;
         assert_le!(needed_capacity, std::u32::MAX as f32);
         needed_capacity as usize
     }
@@ -93,6 +97,13 @@ impl MultiStageResampler<f32> {
             "The actual number of bytes written exceeded the capacity of the destination slice."
         );
         Ok(actual_written)
+    }
+}
+
+/// Clones a MultiStageResampler by creating a new liquid-dsp sampler with the same properties.
+impl Clone for MultiStageResampler<f32> {
+    fn clone(&self) -> MultiStageResampler<f32> {
+        MultiStageResampler::new(self.rate, self.supression)
     }
 }
 
